@@ -5,6 +5,7 @@
 ##################
 
 #number of subjects to simulate
+set.seed(1234)
 n <- 1000
 nms <- c("PM3yr", "time", "nonacc1", 
          "DHH_SEX", "age", 
@@ -16,10 +17,14 @@ nms <- c("PM3yr", "time", "nonacc1",
          "incqu_new_imp", "csize", "depend", "depriv", "ethcon", "instab")
 bar <- numeric()
 for (i in 1:n) {
-  lnth <- sample(1:11, 1)
+  lnth <- sample(1:11, 1, prob = c(rep(0.02, 10), 0.8))
   new <- data.frame(uniqid = rep(i, lnth), 
                     setNames(replicate(length(nms), NA, simplify = F), nms))
-  new$nonacc1 <- c(rep(0, lnth-1), sample(0:1, 1))
+  if (lnth==11) {
+    new$nonacc1 <- c(rep(0, lnth-1), sample(0:1, 1, prob = c(0.98, 0.02)))
+  } else {
+    new$nonacc1 <- c(rep(0, lnth-1), 1)
+  }
   new$time <- 0:(lnth-1)
   new$PM3yr <- rnorm(lnth, mean = 6.4, sd = 2.3)
   new$PM3yr <- ifelse(new$PM3yr < 1.8, 1.8, new$PM3yr)
