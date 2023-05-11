@@ -17,9 +17,11 @@ nms <- c("PM3yr", "time", "nonacc1",
          "incqu_new_imp", "csize", "depend", "depriv", "ethcon", "instab")
 bar <- numeric()
 for (i in 1:n) {
+  # lnth <- sample(1:11, 1)
   lnth <- sample(1:11, 1, prob = c(rep(0.02, 10), 0.8))
-  new <- data.frame(uniqid = rep(i, lnth), 
+  new <- data.frame(id = rep(i, lnth), 
                     setNames(replicate(length(nms), NA, simplify = F), nms))
+  # new$nonacc1 <- c(rep(0, lnth-1), sample(0:1, 1))
   if (lnth==11) {
     new$nonacc1 <- c(rep(0, lnth-1), sample(0:1, 1, prob = c(0.98, 0.02)))
   } else {

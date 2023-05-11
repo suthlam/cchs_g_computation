@@ -122,11 +122,15 @@ f.cov <- sapply(1:length(covnames), function(a) {
     response = covnames[a])
 })
 
+### Important (5/11/2023): for gfoRmula version 1.0.2 (released 2/27/2022), 
+### the ID variable must be named "id" to avoid the error message related to
+### "weighted.mean". This will be resolved in the GitHub developer version and
+### newer versions. See version release timeline "https://github.com/CausalInference/gfoRmula/blob/master/NEWS.Rmd"
 ## main analysis: gformula till the end of max follow-up time without bootstrapping
 gform_1 <- gformula_survival(
   obs_data = dt, 
   # outcome_type = "survival",
-  id = "uniqid",
+  id = "id", 
   time_points = time_points,
   time_name = "time",
   covnames = covnames,
@@ -251,7 +255,7 @@ f.cov <- sapply(1:length(covnames), function(a) {
     response = covnames[a])
 })
 
-sub.id <- unique(dt$uniqid)
+sub.id <- unique(dt$id)
 range <- 1:2 # e.g., 1:100 and 101:200, please use different range for each job so that the seed is different for each bootstrap
 job.id <- "all"  # e.g., 1, 2 or all
 
@@ -268,11 +272,11 @@ foo <- foreach(i = range,
                  set.seed(1234 + i)
                  ids <- as.data.table(sample(sub.id, length(sub.id), replace = TRUE))
                  ids[, bid := 1:nrow(ids)]
-                 colnames(ids) <- c("uniqid", "bid")
+                 colnames(ids) <- c("id", "bid")
                  new <- copy(dt)
-                 setkey(new, "uniqid")
+                 setkey(new, "id")
                  new <- new[J(ids), allow.cartesian = TRUE]
-                 new[, uniqid := new$bid]
+                 new[, id := new$bid]
                  new[, bid := NULL]
                  
                  # Recode rcs(age)
@@ -286,7 +290,7 @@ foo <- foreach(i = range,
                  
                  gform_2 <- gformula_survival(
                    obs_data = new, 
-                   id = "uniqid",
+                   id = "id",
                    time_points = time_points,
                    time_name = "time",
                    covnames = covnames,
@@ -318,7 +322,8 @@ for (i in range) {
   risk_ <- readRDS(file.path(outdir_bt, paste0("gformula_results_bootstrap.", i, ".rds")))
   risks_bs <- rbind(risks_bs, risk_)
 }
-names(risks_bs) <- c("k", "Intervention", "NP_risk", "g_form_risk", "Risk_ratio", "Risk_dif")
+names(risks_bs)[1:6] <- c("k", "Intervention", "NP_risk", "g_form_risk", "Risk_ratio", "Risk_dif")
+## version 1.0.2 added two new columns of output on % intervened on, not used in this example code
 
 ## Check if bootstrapping lead to duplicated results
 temp <- risks_bs[c(which(duplicated(risks_bs$g_form_risk)), 
